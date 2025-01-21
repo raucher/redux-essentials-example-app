@@ -108,10 +108,19 @@ const postsSlice = createSlice({
   },
 })
 
-export const fetchPosts = createAppAsyncThunk('posts/fetchPosts', async () => {
-  const response = await client.get<Post[]>('/fakeApi/posts')
-  return response.data
-})
+export const fetchPosts = createAppAsyncThunk(
+  'posts/fetchPosts',
+  async () => {
+    const response = await client.get<Post[]>('/fakeApi/posts')
+    return response.data
+  },
+  {
+    condition(arg, thunkApi) {
+      const postsStatus = selectPostsStatus(thunkApi.getState())
+      return postsStatus === 'idle'
+    },
+  },
+)
 
 export const { postAdded, postUpdated, reactionAdded } = postsSlice.actions
 
