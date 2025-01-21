@@ -4,6 +4,9 @@ import { sub } from 'date-fns'
 import type { RootState } from '@/app/store'
 
 import { userLoggedOut } from '@/features/auth/authSlice'
+import { createAppAsyncThunk } from '@/app/withTypes'
+import { client } from '@/api/client'
+import { ACTIONS } from 'react-tiny-toast'
 
 export interface Reactions {
   thumbsUp: number
@@ -84,11 +87,30 @@ const postsSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(userLoggedOut, (state) => {
-      // Clear out the list of posts whenever the user logs out
-      return initialState
-    })
+    builder
+      .addCase(userLoggedOut, (state) => {
+        // Clear out the list of posts whenever the user logs out
+        return initialState
+      })
+      .addCase(fetchPosts.pending, (state) => {
+        state.status = 'pending'
+      })
+      .addCase(fetchPosts.fulfilled, (state, action) => {
+        state.status = 'succeeded'
+
+        state.posts.push(...action.payload)
+      })
+      .addCase(fetchPosts.rejected, (state, action) => {
+        state.status = 'failed'
+
+        state.error = action.error.message ?? 'Unknown Error :/'
+      })
   },
+})
+
+export const fetchPosts = createAppAsyncThunk('posts/fetchPosts', async () => {
+  const response = await client.get<Post[]>('/fakeApi/posts')
+  return response.data
 })
 
 export const { postAdded, postUpdated, reactionAdded } = postsSlice.actions
