@@ -1,9 +1,9 @@
-import React from 'react'
+import React, { useState } from 'react'
 
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { selectCurrentUsername } from '@/features/auth/authSlice'
 
-import { postAdded } from './postsSlice'
+import { addNewPost } from './postsSlice'
 
 // TS types for the input fields
 // See: https://epicreact.dev/how-to-type-a-react-form-on-submit-handler/
@@ -17,18 +17,33 @@ interface AddPostFormElements extends HTMLFormElement {
 
 export const AddPostForm = () => {
   const dispatch = useAppDispatch()
+  const [addRequestStatus, setAddRequestStatus] = useState<'idle' | 'pending'>('idle')
 
   const userId = useAppSelector(selectCurrentUsername)!
 
-  const handleSubmit = (e: React.FormEvent<AddPostFormElements>) => {
+  const handleSubmit = async (e: React.FormEvent<AddPostFormElements>) => {
     // Prevent server submission
     e.preventDefault()
+    if (addRequestStatus !== 'idle') {
+      return
+    }
 
     const { elements } = e.currentTarget
-    const title = elements.postTitle.value
-    const content = elements.postContent.value
 
-    dispatch(postAdded(title, content, userId))
+    const newPost = {
+      title: elements.postTitle.value,
+      content: elements.postContent.value,
+      user: userId,
+    }
+
+    try {
+      setAddRequestStatus('pending')
+      await dispatch(addNewPost(newPost)).unwrap()
+    } catch (error) {
+      console.log('Failed to save post: ', error)
+    } finally {
+      setAddRequestStatus('idle')
+    }
 
     e.currentTarget.reset()
   }
@@ -41,7 +56,7 @@ export const AddPostForm = () => {
         <input type="text" id="postTitle" defaultValue="" required />
         <label htmlFor="postContent">Content:</label>
         <textarea id="postContent" name="postContent" defaultValue="" required />
-        <button>Save Post</button>
+        <button disabled={addRequestStatus !== 'idle'}>Save Post</button>
       </form>
     </section>
   )
