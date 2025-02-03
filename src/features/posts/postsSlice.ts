@@ -3,7 +3,7 @@ import { sub } from 'date-fns'
 
 import type { RootState } from '@/app/store'
 
-import { userLoggedOut } from '@/features/auth/authSlice'
+import { logout } from '@/features/auth/authSlice'
 import { createAppAsyncThunk } from '@/app/withTypes'
 import { client } from '@/api/client'
 import { ACTIONS } from 'react-tiny-toast'
@@ -108,7 +108,7 @@ const postsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(userLoggedOut, (state) => {
+      .addCase(logout.fulfilled, () => {
         // Clear out the list of posts whenever the user logs out
         return initialState
       })
