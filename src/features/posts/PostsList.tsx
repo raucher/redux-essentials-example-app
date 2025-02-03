@@ -1,18 +1,13 @@
-import { Link } from 'react-router-dom'
-
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
-import { TimeAgo } from '@/components/TimeAgo'
 
-import { PostAuthor } from './PostAuthor'
-import { fetchPosts, selectAllPosts, selectPostsError, selectPostsStatus } from './postsSlice'
-import { ReactionButtons } from './ReactionButtons'
+import { fetchPosts, selectPostIds, selectPostsError, selectPostsStatus } from './postsSlice'
 import { useEffect } from 'react'
 import { Spinner } from '@/components/Spinner'
 import PostExcerpt from './PostExcerpt'
 
 export const PostsList = () => {
   const dispatch = useAppDispatch()
-  const posts = useAppSelector(selectAllPosts)
+  const orderedPostIds = useAppSelector(selectPostIds)
   const postStatus = useAppSelector(selectPostsStatus)
   const postsError = useAppSelector(selectPostsError)
 
@@ -28,9 +23,10 @@ export const PostsList = () => {
     content = <Spinner text="Loading..." />
   } else if (postStatus === 'succeeded') {
     // Sort posts in reverse chronological order by datetime string
-    const orderedPosts = posts.slice().sort((a, b) => b.date.localeCompare(a.date))
-    content = orderedPosts.map((post) => <PostExcerpt key={post.id} post={post} />)
-  } else if (postStatus === 'failed') {
+    // const orderedPosts = posts.slice().sort((a, b) => b.date.localeCompare(a.date))
+    // content = orderedPosts.map((post) => <PostExcerpt key={post.id} post={post} />)
+    content = orderedPostIds.map((postId) => <PostExcerpt key={postId} postId={postId} />)
+  } else if (postStatus === 'rejected') {
     content = <div>{postsError}</div>
   }
 
